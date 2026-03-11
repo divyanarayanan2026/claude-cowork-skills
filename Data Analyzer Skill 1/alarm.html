@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>⏰ 1 Hour Alarm</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, sans-serif;
+    background: #0f0f0f;
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+  }
+  body.ringing {
+    animation: flashbg 0.4s infinite;
+  }
+  @keyframes flashbg {
+    0%, 100% { background: #ff2200; }
+    50% { background: #ff8800; }
+  }
+  #countdown {
+    font-size: 96px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+  }
+  #label {
+    font-size: 22px;
+    color: #aaa;
+    margin-top: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  #message {
+    font-size: 48px;
+    margin-top: 24px;
+    display: none;
+    text-align: center;
+  }
+  #stopbtn {
+    margin-top: 40px;
+    padding: 16px 48px;
+    font-size: 20px;
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    display: none;
+    font-weight: 600;
+  }
+  #stopbtn:hover { background: #eee; }
+  #snooze {
+    margin-top: 16px;
+    padding: 12px 36px;
+    font-size: 16px;
+    background: transparent;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 50px;
+    cursor: pointer;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div id="countdown">1:00:00</div>
+<div id="label">until wake-up</div>
+<div id="message">☀️ WAKE UP, DIVYA! ☀️</div>
+<button id="stopbtn" onclick="stopAlarm()">Stop Alarm</button>
+<button id="snooze" onclick="snoozeAlarm()">Snooze 5 min</button>
+
+<script>
+  const DURATION = 60 * 60; // 1 hour in seconds
+  let remaining = DURATION;
+  let alarmPlaying = false;
+  let audioCtx = null;
+  let alarmInterval = null;
+  let countdownInterval = null;
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function formatTime(secs) {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  }
+
+  countdownInterval = setInterval(() => {
+    remaining--;
+    document.getElementById('countdown').textContent = formatTime(remaining);
+    if (remaining <= 0) {
+      clearInterval(countdownInterval);
+      triggerAlarm();
+    }
+  }, 1000);
+
+  function triggerAlarm() {
+    document.body.classList.add('ringing');
+    document.getElementById('countdown').style.display = 'none';
+    document.getElementById('label').style.display = 'none';
+    document.getElementById('message').style.display = 'block';
+    document.getElementById('stopbtn').style.display = 'inline-block';
+    document.getElementById('snooze').style.display = 'inline-block';
+    alarmPlaying = true;
+    playAlarmSound();
+    // Keep playing every 2s
+    alarmInterval = setInterval(playAlarmSound, 2200);
+  }
+
+  function playAlarmSound() {
+    if (!alarmPlaying) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const beeps = [880, 1100, 880, 1100, 880];
+    beeps.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'square';
+      gain.gain.setValueAtTime(0.8, audioCtx.currentTime + i * 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.2 + 0.18);
+      osc.start(audioCtx.currentTime + i * 0.2);
+      osc.stop(audioCtx.currentTime + i * 0.2 + 0.2);
+    });
+  }
+
+  function stopAlarm() {
+    alarmPlaying = false;
+    clearInterval(alarmInterval);
+    document.body.classList.remove('ringing');
+    document.body.style.background = '#1a4a1a';
+    document.getElementById('message').textContent = '✅ Good morning!';
+    document.getElementById('stopbtn').style.display = 'none';
+    document.getElementById('snooze').style.display = 'none';
+  }
+
+  function snoozeAlarm() {
+    alarmPlaying = false;
+    clearInterval(alarmInterval);
+    document.body.classList.remove('ringing');
+    document.body.style.background = '#0f0f0f';
+    document.getElementById('message').style.display = 'none';
+    document.getElementById('countdown').style.display = 'block';
+    document.getElementById('label').style.display = 'block';
+    document.getElementById('stopbtn').style.display = 'none';
+    document.getElementById('snooze').style.display = 'none';
+    remaining = 5 * 60;
+    document.getElementById('label').textContent = 'snooze — 5 min';
+    countdownInterval = setInterval(() => {
+      remaining--;
+      document.getElementById('countdown').textContent = formatTime(remaining);
+      if (remaining <= 0) {
+        clearInterval(countdownInterval);
+        triggerAlarm();
+      }
+    }, 1000);
+  }
+
+  // Unlock audio on first click (browser policy)
+  document.addEventListener('click', () => {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+  }, { once: true });
+</script>
+</body>
+</html>

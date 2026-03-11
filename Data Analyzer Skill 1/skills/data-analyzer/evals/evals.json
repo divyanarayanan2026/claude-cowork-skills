@@ -1,0 +1,23 @@
+{
+  "skill_name": "data-analyzer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Hey, my boss gave me this sales CSV file (sales_data.csv) and wants to know what's driving our revenue — can you analyze it and give me a report?",
+      "expected_output": "HTML report with charts (at minimum a distribution and a bar chart), key findings with specific numbers, and a summary stats table. Findings should mention revenue, top region or product, and any data quality issues.",
+      "files": ["/tmp/sales_data.csv"]
+    },
+    {
+      "id": 2,
+      "prompt": "Can you just tell me what's in this data file? Like what are the columns, how many rows, any missing stuff? sales_data.csv",
+      "expected_output": "HTML report or inline summary showing column names, row count, missing value counts, and basic stats. Should still produce a report file even for a simple exploratory request.",
+      "files": ["/tmp/sales_data.csv"]
+    },
+    {
+      "id": 3,
+      "prompt": "I have sales_data.csv — make me some charts from this and show me the trends over time",
+      "expected_output": "HTML report with at least one time-series line chart, clear axis labels, and commentary on the trend direction. Should identify seasonal patterns or peaks if present.",
+      "files": ["/tmp/sales_data.csv"]
+    }
+  ]
+}
